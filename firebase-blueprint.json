@@ -1,0 +1,267 @@
+{
+  "entities": {
+    "screenerFilter": {
+      "title": "ScreenerFilter",
+      "description": "Filtre multi-critères sauvegardé par un utilisateur pour le screener d'actions BRVM.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identifiant unique du filtre",
+          "maxLength": 128
+        },
+        "name": {
+          "type": "string",
+          "description": "Nom donné par l'utilisateur au filtre (ex: Banques à fort rendement)",
+          "maxLength": 80
+        },
+        "userId": {
+          "type": "string",
+          "description": "Identifiant UID Firebase de l'utilisateur propriétaire",
+          "maxLength": 128
+        },
+        "sector": {
+          "type": "string",
+          "description": "Secteur filtré ou ALL",
+          "maxLength": 64
+        },
+        "country": {
+          "type": "string",
+          "description": "Pays UEMOA filtré ou ALL",
+          "maxLength": 16
+        },
+        "minPE": {
+          "type": "number",
+          "description": "PER minimum"
+        },
+        "maxPE": {
+          "type": "number",
+          "description": "PER maximum"
+        },
+        "minYield": {
+          "type": "number",
+          "description": "Rendement de dividende minimum en %"
+        },
+        "minCap": {
+          "type": "number",
+          "description": "Capitalisation minimale en FCFA"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Date de création ISO"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Date de dernière modification ISO"
+        }
+      },
+      "required": ["id", "name", "userId", "createdAt"]
+    },
+    "priceAlert": {
+      "title": "PriceAlert",
+      "description": "Alerte de cours de bourse configurée par l'utilisateur sur un ticker BRVM.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Identifiant unique de l'alerte",
+          "maxLength": 128
+        },
+        "userId": {
+          "type": "string",
+          "description": "UID du propriétaire de l'alerte",
+          "maxLength": 128
+        },
+        "ticker": {
+          "type": "string",
+          "description": "Ticker BRVM cible (ex: SNTS, SGBC)",
+          "maxLength": 16
+        },
+        "stockName": {
+          "type": "string",
+          "description": "Nom de la société",
+          "maxLength": 100
+        },
+        "condition": {
+          "type": "string",
+          "description": "Condition de franchissement de seuil",
+          "enum": ["ABOVE", "BELOW"]
+        },
+        "targetPrice": {
+          "type": "number",
+          "description": "Cours cible en F CFA déclenchant l'alerte"
+        },
+        "note": {
+          "type": "string",
+          "description": "Note personnelle optionnelle",
+          "maxLength": 200
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "Si l'alerte est actuellement active"
+        },
+        "isTriggered": {
+          "type": "boolean",
+          "description": "Si le seuil a déjà été franchi"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Date de création de l'alerte"
+        }
+      },
+      "required": ["id", "userId", "ticker", "condition", "targetPrice", "createdAt"]
+    },
+    "bocRecord": {
+      "title": "BocRecord",
+      "description": "Fiche de séance du Bulletin Officiel de la Cote (BOC) de la BRVM.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Date de séance ISO (ex: 2026-10-21) servant d'identifiant",
+          "maxLength": 64
+        },
+        "sessionDate": {
+          "type": "string",
+          "description": "Date de la séance au format YYYY-MM-DD",
+          "maxLength": 10
+        },
+        "sessionDateFormatted": {
+          "type": "string",
+          "description": "Date de la séance au format JJ/MM/AAAA",
+          "maxLength": 10
+        },
+        "version": {
+          "type": "number",
+          "description": "Numéro de version du fichier pour la séance"
+        },
+        "fileName": {
+          "type": "string",
+          "description": "Nom du fichier PDF téléchargé ou importé",
+          "maxLength": 128
+        },
+        "sourceUrl": {
+          "type": "string",
+          "description": "URL source sur le site de la BRVM ou chemin d'accès",
+          "maxLength": 256
+        },
+        "importedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Date et heure de l'import"
+        },
+        "status": {
+          "type": "string",
+          "description": "Statut de l'import du BOC",
+          "enum": ["ok", "partial", "failed"]
+        },
+        "statusExplanation": {
+          "type": "string",
+          "description": "Explication de l'état",
+          "maxLength": 256
+        },
+        "fileSize": {
+          "type": "number",
+          "description": "Taille du fichier PDF en octets"
+        },
+        "importMethod": {
+          "type": "string",
+          "description": "Méthode d'obtention",
+          "enum": ["automatic", "manual"]
+        }
+      },
+      "required": ["id", "sessionDate", "sessionDateFormatted", "version", "fileName", "importedAt", "status"]
+    },
+    "bocAction": {
+      "title": "BocAction",
+      "description": "Ligne d'action extraite du Bulletin Officiel de la Cote.",
+      "type": "object",
+      "properties": {
+        "symbole": { "type": "string", "maxLength": 16 },
+        "titre": { "type": "string", "maxLength": 100 },
+        "coursPrecedent": { "type": "number" },
+        "cloture": { "type": "number" },
+        "variationPourcent": { "type": "number" },
+        "volume": { "type": "number" },
+        "valeur": { "type": "number" },
+        "dernierDividendeNet": { "type": "number" },
+        "rendementNetPourcent": { "type": "number" },
+        "per": { "type": "number" },
+        "isSuspended": { "type": "boolean" }
+      },
+      "required": ["symbole", "titre", "isSuspended"]
+    },
+    "bocOperation": {
+      "title": "BocOperation",
+      "description": "Opération sur titre en cours extraite du BOC.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "type": { "type": "string", "maxLength": 32 },
+        "societe": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 500 }
+      },
+      "required": ["id", "societe", "description"]
+    },
+    "bocAG": {
+      "title": "BocAG",
+      "description": "Assemblée Générale annoncée dans le BOC.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64 },
+        "societe": { "type": "string", "maxLength": 100 },
+        "nature": { "type": "string", "maxLength": 32 },
+        "date": { "type": "string", "maxLength": 32 }
+      },
+      "required": ["id", "societe", "date"]
+    },
+    "bocObligation": {
+      "title": "BocObligation",
+      "description": "Ligne du marché obligataire extraite du BOC.",
+      "type": "object",
+      "properties": {
+        "symbole": { "type": "string", "maxLength": 32 },
+        "titre": { "type": "string", "maxLength": 128 },
+        "coursDuJour": { "type": "number" }
+      },
+      "required": ["symbole", "titre"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/screenerFilters/{filterId}": {
+      "schema": "screenerFilter",
+      "description": "Collection des configurations de screener enregistrées par l'utilisateur."
+    },
+    "/users/{userId}/priceAlerts/{alertId}": {
+      "schema": "priceAlert",
+      "description": "Collection des alertes de cours configurées par l'utilisateur."
+    },
+    "/boc/{bocId}": {
+      "schema": "bocRecord",
+      "description": "Collection des bulletins officiels de la cote (BOC) archivés par séance."
+    },
+    "/boc/{bocId}/actions/{actionId}": {
+      "schema": "bocAction",
+      "description": "Actions cotées et certifiées lors de la séance du BOC."
+    },
+    "/boc/{bocId}/quarantine/{actionId}": {
+      "schema": "bocAction",
+      "description": "Lignes d'actions mises en quarantaine pour écart mathématique."
+    },
+    "/boc/{bocId}/operations/{opId}": {
+      "schema": "bocOperation",
+      "description": "Opérations financières en cours recensées dans le BOC."
+    },
+    "/boc/{bocId}/ag/{agId}": {
+      "schema": "bocAG",
+      "description": "Calendrier des assemblées générales publiées dans le BOC."
+    },
+    "/boc/{bocId}/obligations/{obId}": {
+      "schema": "bocObligation",
+      "description": "Titres obligataires et coupons recensés dans le BOC."
+    }
+  }
+}

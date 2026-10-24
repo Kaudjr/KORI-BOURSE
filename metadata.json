@@ -1,0 +1,6 @@
+{
+  "name": "KORI BOURSE · Terminal BRVM",
+  "description": "Plateforme d'information, d'observation financière et de formation sur la Bourse Régionale des Valeurs Mobilières (BRVM - UEMOA). Données de démonstration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

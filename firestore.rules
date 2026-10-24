@@ -1,0 +1,121 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net: default-deny all undefined collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Common Security Helper Functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Validation for ScreenerFilter entity
+    function isValidScreenerFilter(data, userId) {
+      return data.id is string && data.id.size() <= 128
+        && data.userId == userId
+        && data.userId == request.auth.uid
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 80
+        && (!('sector' in data) || (data.sector is string && data.sector.size() <= 64))
+        && (!('country' in data) || (data.country is string && data.country.size() <= 16))
+        && (!('minPE' in data) || data.minPE is number)
+        && (!('maxPE' in data) || data.maxPE is number)
+        && (!('minYield' in data) || data.minYield is number)
+        && (!('minCap' in data) || data.minCap is number)
+        && data.createdAt is string;
+    }
+
+    // Validation for PriceAlert entity
+    function isValidPriceAlert(data, userId) {
+      return data.id is string && data.id.size() <= 128
+        && data.userId == userId
+        && data.userId == request.auth.uid
+        && data.ticker is string && data.ticker.size() > 0 && data.ticker.size() <= 16
+        && data.stockName is string && data.stockName.size() <= 100
+        && data.condition in ['ABOVE', 'BELOW']
+        && data.targetPrice is number && data.targetPrice > 0
+        && (!('note' in data) || (data.note is string && data.note.size() <= 200))
+        && (!('isActive' in data) || data.isActive is bool)
+        && (!('isTriggered' in data) || data.isTriggered is bool)
+        && data.createdAt is string;
+    }
+
+    // Validation for BocRecord entity
+    function isValidBocRecord(data) {
+      return data.id is string && data.id.size() <= 64
+        && data.sessionDate is string && data.sessionDate.size() <= 10
+        && data.sessionDateFormatted is string && data.sessionDateFormatted.size() <= 10
+        && data.version is number
+        && data.fileName is string && data.fileName.size() <= 128
+        && data.status in ['ok', 'partial', 'failed']
+        && data.importedAt is string;
+    }
+
+    // Public BOC (Bulletin Officiel de la Cote) archives
+    match /boc/{bocId} {
+      allow get, list: if true;
+      allow create, update: if isValidId(bocId);
+      allow delete: if isSignedIn();
+
+      // Subcollections (actions, quarantine, operations, ag, obligations)
+      match /{subcollection=**} {
+        allow get, list: if true;
+        allow create, update, delete: if true;
+      }
+    }
+
+    // User Subcollections - Zero-Trust Isolation
+    match /users/{userId} {
+      // Direct access to user doc is disabled or restricted
+      allow read, write: if isOwner(userId);
+
+      // 1. Screener Filters
+      match /screenerFilters/{filterId} {
+        allow get: if isOwner(userId) && isValidId(filterId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && isValidId(filterId)
+          && isValidScreenerFilter(incoming(), userId);
+        allow update: if isOwner(userId)
+          && isValidId(filterId)
+          && isValidScreenerFilter(incoming(), userId)
+          && incoming().userId == existing().userId
+          && incoming().createdAt == existing().createdAt;
+        allow delete: if isOwner(userId) && isValidId(filterId);
+      }
+
+      // 2. Price Alerts
+      match /priceAlerts/{alertId} {
+        allow get: if isOwner(userId) && isValidId(alertId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && isValidId(alertId)
+          && isValidPriceAlert(incoming(), userId);
+        allow update: if isOwner(userId)
+          && isValidId(alertId)
+          && isValidPriceAlert(incoming(), userId)
+          && incoming().userId == existing().userId
+          && incoming().createdAt == existing().createdAt;
+        allow delete: if isOwner(userId) && isValidId(alertId);
+      }
+    }
+  }
+}
